@@ -5,6 +5,7 @@ import {
   hashBodyPassword,
   validateUniqueEmail,
 } from "@/middlewares/authMiddleware";
+import { deleteImage, profileUploader } from "@/middlewares/fileMiddleware.ts";
 import { validateBody } from "@/middlewares/shareMiddleware";
 
 import { matchPassword, signToken } from "@/utils/encryption";
@@ -94,7 +95,24 @@ authController.post(
 );
 
 // upload profile
+authController.put(
+  "/upload-profile",
+  autheticateRequest(true),
+  profileUploader,
+  async (request, response) => {
+    let profile = request.auth.profile;
+    if (profile) await deleteImage(profile);
+    profile = request.file ? request.file.filename : null;
+    const user = await database.user.update({
+      where: { id: request.auth.id },
+      data: {
+        profile,
+      },
+    });
+    response.status(ResponseStatus.OK).json(user);
+  }
+);
 
-// delete
+// delete user
 
 export default authController;
