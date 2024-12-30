@@ -3,8 +3,13 @@ import { v4 } from "uuid";
 import path from "path";
 import fs from "fs";
 
-export const deleteImage = (name: string) =>
-  fs.promises.rm(path.join("./public/images/", name));
+export const deleteImage = async (name: string) => {
+  try {
+    await fs.promises.rm(path.join("./public/images/", name));
+  } catch (error: any) {
+    console.error(error.message);
+  }
+};
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
