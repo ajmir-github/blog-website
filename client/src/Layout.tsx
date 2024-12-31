@@ -1,13 +1,15 @@
 import { Outlet } from "react-router";
-import Sidebar from "./components/Sidebar";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 
 export default function Layout() {
   return (
-    <div className="flex flex-col md:flex-row min-h-screen" data-theme="light">
-      <Sidebar />
-      <h1 className="grow bg-base-200">
+    <>
+      <div>
+        <Navbar />
         <Outlet />
-      </h1>
-    </div>
+        <Footer />
+      </div>
+    </>
   );
 }
