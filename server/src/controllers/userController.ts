@@ -1,19 +1,17 @@
 import { ResponseStatus } from "@/constants";
 import database from "@/database";
-import express from "express";
-
-const userController = express.Router();
+import { Handler } from "express";
 
 // get list of users
-userController.get("/", async (request, response) => {
-  const books = await database.user.findMany({
+export const getUsers: Handler = async (request, response) => {
+  const users = await database.user.findMany({
     select: { id: true, name: true, profile: true },
   });
-  response.json(books);
-});
+  response.json(users);
+};
 
 // get a single user with its posts and comments
-userController.get("/:id", async ({ params: { id } }, response) => {
+export const getSingleUser: Handler = async ({ params: { id } }, response) => {
   const user = await database.user.findUnique({
     where: { id },
     include: {
@@ -29,6 +27,4 @@ userController.get("/:id", async ({ params: { id } }, response) => {
     return;
   }
   response.json(user);
-});
-
-export default userController;
+};
