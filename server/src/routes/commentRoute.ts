@@ -5,7 +5,7 @@ import {
 } from "@/controllers/commentController";
 import { autheticateRequest } from "@/middlewares/authMiddleware";
 import { cachePostByID } from "@/middlewares/postMiddleware";
-import { validateBody } from "@/middlewares/shareMiddleware";
+import validate from "@/middlewares/validate";
 import commentValidator from "@/validators/commentValidator";
 import express from "express";
 
@@ -17,7 +17,7 @@ commentController.post(
   "/:postId/",
   autheticateRequest(true),
   cachePostByID,
-  validateBody(commentValidator),
+  validate({ body: commentValidator }),
   createCommment
 );
 
@@ -26,7 +26,7 @@ commentController.patch(
   "/:postId/:commentId",
   autheticateRequest(true),
   cachePostByID,
-  validateBody(commentValidator),
+  validate({ body: commentValidator }),
   updateComment
 );
 
@@ -35,7 +35,7 @@ commentController.patch(
   "/:postId/:commentId",
   autheticateRequest(true),
   cachePostByID,
-  validateBody(commentValidator),
+  validate({ body: commentValidator }),
   deleteComment
 );
 

@@ -1,3 +1,5 @@
+import appContext from "@/appContext";
+import { ResponseStatus } from "@/constants";
 import {
   getAuth,
   signIn,
@@ -5,13 +7,17 @@ import {
   updateUser,
   uploadProfile,
 } from "@/controllers/authController";
+import database from "@/database";
 import {
   autheticateRequest,
   hashBodyPassword,
   validateUniqueEmail,
 } from "@/middlewares/authMiddleware";
 import { profileUploader } from "@/middlewares/fileMiddleware.ts";
-import { validateBody } from "@/middlewares/shareMiddleware";
+import validate from "@/middlewares/validate";
+import { Response } from "@/utils/createContext";
+import { matchPassword, signToken } from "@/utils/encryption";
+import { customValidationError } from "@/utils/simplifyZodError";
 
 import userValidator from "@/validators/userValidator";
 import express from "express";
@@ -19,16 +25,12 @@ import express from "express";
 const authRouter = express.Router();
 
 // sign in
-authRouter.post(
-  "/sign-in",
-  validateBody(userValidator.pick({ email: true, password: true })),
-  signIn
-);
+authRouter.post("/sign-in", signIn);
 
 // sign up
 authRouter.post(
   "/sign-up",
-  validateBody(userValidator),
+  validate({ body: userValidator }),
   validateUniqueEmail,
   hashBodyPassword,
   signUp
@@ -41,11 +43,11 @@ authRouter.get("/get-auth", autheticateRequest(true), getAuth);
 authRouter.post(
   "/update",
   autheticateRequest(true),
-  validateBody(
-    userValidator
+  validate({
+    body: userValidator
       .pick({ email: true, name: true, password: true, profile: true })
-      .partial()
-  ),
+      .partial(),
+  }),
   validateUniqueEmail,
   hashBodyPassword,
   updateUser

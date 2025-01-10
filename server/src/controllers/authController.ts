@@ -1,37 +1,33 @@
+import appContext from "@/appContext";
 import { ResponseStatus } from "@/constants";
 import database from "@/database";
 import { deleteImage } from "@/middlewares/fileMiddleware.ts";
-
+import { Response } from "@/utils/createContext";
 import { matchPassword, signToken } from "@/utils/encryption";
-import { customValidationError } from "@/utils/simplifyZodError";
-import { Handler, Response } from "express";
+import userValidator from "@/validators/userValidator";
+import { Handler } from "express";
 
 // sign in
-export const signIn: Handler = async (
-  { body: { email, password } },
-  response: Response
-) => {
+export const signIn = appContext(async (context) => {
+  // get inputs
+  const { email, password } = context.getBody(
+    userValidator.pick({ email: true, password: true })
+  );
   // check email
   const user = await database.user.findUnique({ where: { email } });
-  if (!user) {
-    response
-      .status(ResponseStatus.BAD_INPUT)
-      .json(customValidationError("email", "Email not found!"));
-    return;
-  }
+  if (!user) return Response.customBadInput("email", "Email not found!");
+
   // check password
   const passwordMatched = matchPassword(password, user.password);
-  if (!passwordMatched) {
-    response
-      .status(ResponseStatus.BAD_INPUT)
-      .json(customValidationError("Password", "Password not matched!"));
-
-    return;
-  }
+  if (!passwordMatched)
+    return Response.customBadInput("Password", "Password not matched!");
   // create token
   const token = signToken(user.id);
-  response.json({ token, user });
-};
+  return Response.success({
+    token,
+    user,
+  });
+});
 
 // sign up
 export const signUp: Handler = async ({ body }, response) => {
