@@ -8,6 +8,15 @@ export const env = z
     PORT: z.string().length(4).default("3000"),
     SECRET_KEY: z.string().min(6).default("SECRET_KEY"),
     ENV_MODE: z.enum(["development", "production"]).default("development"),
+    PROD: z.boolean(),
+    DEV: z.boolean(),
+  })
+  .refine((data) => {
+    return {
+      ...data,
+      PROD: data.ENV_MODE === "production",
+      DEV: data.ENV_MODE === "development",
+    };
   })
   .parse(process.env);
 

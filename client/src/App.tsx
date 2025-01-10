@@ -1,8 +1,7 @@
-// import Pages from "./pages";
+import Pages from "./pages";
 
 function App() {
-  return <h1>Here</h1>;
-  // return <Pages />;
+  return <Pages />;
 }
 
 export default App;

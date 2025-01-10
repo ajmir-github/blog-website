@@ -1,9 +1,10 @@
 import express, { Response } from "express";
 import { env, ResponseStatus } from "./constants";
+import userController from "./controllers/userController";
+import authController from "./controllers/authController";
 import { Post, User } from "@prisma/client";
+import postControllers from "./controllers/postController";
 import commentController from "./controllers/commentController";
-import authRouter from "./routes/authRoutes";
-import postRouter from "./routes/postRoutes";
 
 // Server Configuration
 const app = express();
@@ -13,24 +14,24 @@ app.use(express.json());
 declare global {
   namespace Express {
     interface Request {
-      auth?: User;
-      post?: Post;
-      comment?: Comment;
+      auth: User;
+      post: Post;
+      comment: Comment;
     }
   }
 }
 
 app.use((req, res, next) => {
-  if (env.ENV_MODE === "Development")
+  if (env.ENV_MODE === "development")
     console.log({ method: req.method, url: req.url });
   next();
 });
 
 // API Registeration
-app.use("/users", userRoutes);
-app.use("/auth", authRouter);
-app.use("/posts", postRouter);
-app.use("/comments", commentController);
+app.use("/users", userController);
+app.use("/auth", authController);
+app.use("/posts", postControllers);
+app.use("/posts/:postId/comments", commentController);
 
 // If URL not found
 app.use("*", (request, response) => {

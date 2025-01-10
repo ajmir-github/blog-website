@@ -1,28 +1,41 @@
 import { ResponseStatus } from "@/constants";
 import database from "@/database";
-import { Handler } from "express";
+import { autheticateRequest } from "@/middlewares/authMiddleware";
+import { cachePostByID } from "@/middlewares/postMiddleware";
+import { validateBody } from "@/middlewares/shareMiddleware";
+import commentValidator from "@/validators/commentValidator";
+import express, { response } from "express";
 
-// /comments/:postId...
+// /posts/:postId/comments...
+const commentController = express.Router({ mergeParams: true }); // merge to access parent :postId
 
 // make comment
-export const createCommment: Handler = async (
-  { body, auth, post },
-  response,
-  next
-) => {
-  if (!auth || !post) return next(new Error("auth and post are required!"));
-  const comment = await database.comment.create({
-    data: {
-      ...body,
-      userId: auth.id,
-      postId: post.id,
-    },
-  });
-  response.status(ResponseStatus.CREATED).json({ id: comment.id });
-};
+commentController.post(
+  "/",
+  autheticateRequest(true),
+  cachePostByID,
+  validateBody(commentValidator),
+  async (requset, response) => {
+    const comment = await database.comment.create({
+      data: {
+        ...requset.body,
+        userId: requset.auth.id,
+        postId: requset.post.id,
+      },
+    });
+    response.status(ResponseStatus.CREATED).json({ id: comment.id });
+  }
+);
 
 // update comment
-export const updateComment: Handler = async (requset, response) => {};
+commentController.patch(
+  "/:commentId",
+  autheticateRequest(true),
+  cachePostByID,
+  validateBody(commentValidator),
+  async (requset, response) => {}
+);
 
 // delete comment
-export const deleteComment: Handler = async () => {};
+
+export default commentController;
