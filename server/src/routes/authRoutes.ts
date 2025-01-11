@@ -1,33 +1,17 @@
 import { getAuth, signIn, signUp } from "@/controllers/authController";
-import {
-  autheticateRequest,
-  hashBodyPassword,
-  validateUniqueEmail,
-} from "@/middlewares/authMiddleware";
-import { validateBody } from "@/middlewares/shareMiddleware";
-import userValidator from "@/validators/userValidator";
+import autheticate from "@/middlewares/isAuthenticated";
 import express from "express";
 
 // parent: /api/auth
 const authRouter = express.Router();
 
 // sign in
-authRouter.post(
-  "/sign-in",
-  validateBody(userValidator.pick({ email: true, password: true })),
-  signIn
-);
+authRouter.post("/sign-in", signIn);
 
 // sign up
-authRouter.post(
-  "/sign-up",
-  validateBody(userValidator),
-  validateUniqueEmail,
-  hashBodyPassword,
-  signUp
-);
+authRouter.post("/sign-up", signUp);
 
 // get auth
-authRouter.get("/get-auth", autheticateRequest(true), getAuth);
+authRouter.get("/get-auth", autheticate, getAuth);
 
 export default authRouter;

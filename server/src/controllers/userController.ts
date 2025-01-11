@@ -1,6 +1,8 @@
 import { ResponseStatus } from "@/constants";
 import database from "@/database";
 import { deleteImage } from "@/middlewares/fileMiddleware.ts";
+import { hashPassword } from "@/utils/encryption";
+import userValidator from "@/validators/userValidator";
 import { Handler } from "express";
 
 // get list of users
@@ -31,13 +33,15 @@ export const getUser: Handler = async ({ params: { id } }, response) => {
 };
 
 // update self (email, name, password)
-export const updateUser: Handler = async ({ body, auth }, response) => {
-  if (!auth) return;
+export const updateUser: Handler = async (request, response) => {
+  const inputs = userValidator
+    .pick({ email: true, name: true, password: true, profile: true })
+    .partial()
+    .parse(request.body);
+  if (inputs.password) inputs.password = hashPassword(inputs.password);
   const user = await database.user.update({
-    where: { id: auth.id },
-    data: {
-      ...body,
-    },
+    where: { id: request.auth.id },
+    data: inputs,
   });
   response.status(ResponseStatus.OK).json(user);
 };

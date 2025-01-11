@@ -1,5 +1,5 @@
 import { createComment, updateComment } from "@/controllers/commentController";
-import { autheticateRequest } from "@/middlewares/authMiddleware";
+import isAuthenticated from "@/middlewares/isAuthenticated";
 import { cachePostByID } from "@/middlewares/postMiddleware";
 import { validateBody } from "@/middlewares/shareMiddleware";
 import commentValidator from "@/validators/commentValidator";
@@ -10,7 +10,7 @@ const commentRoutes = express.Router();
 // make comment
 commentRoutes.post(
   "/:postId/",
-  autheticateRequest(true),
+  isAuthenticated,
   cachePostByID,
   validateBody(commentValidator),
   createComment
@@ -19,7 +19,7 @@ commentRoutes.post(
 // update comment
 commentRoutes.patch(
   "/:postId/:commentId",
-  autheticateRequest(true),
+  isAuthenticated,
   cachePostByID,
   validateBody(commentValidator),
   updateComment

@@ -1,4 +1,5 @@
-import { z } from "zod";
+import { User } from "@prisma/client";
+import { z, ZodSchema } from "zod";
 
 const userValidator = z.object({
   email: z.string().email(),
