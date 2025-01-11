@@ -1,10 +1,8 @@
 import express, { Response } from "express";
 import { env, ResponseStatus } from "./constants";
-import userController from "./controllers/userController";
-import authController from "./controllers/authController";
 import { Post, User } from "@prisma/client";
-import postControllers from "./controllers/postController";
-import commentController from "./controllers/commentController";
+import path from "path";
+import router from "./routes";
 
 // Server Configuration
 const app = express();
@@ -21,25 +19,24 @@ declare global {
   }
 }
 
+// API Registeration
+app.use("/static", express.static(path.join(__dirname, "/public")));
+// Log requests in DEV mode
 app.use((req, res, next) => {
-  if (env.ENV_MODE === "development")
-    console.log({ method: req.method, url: req.url });
+  if (env.DEV) console.log({ method: req.method, url: req.url });
   next();
 });
 
-// API Registeration
-app.use("/users", userController);
-app.use("/auth", authController);
-app.use("/posts", postControllers);
-app.use("/posts/:postId/comments", commentController);
+app.use("/api", router);
 
 // If URL not found
-app.use("*", (request, response) => {
+router.use("*", (request, response) => {
   response.status(ResponseStatus.NOT_FOUND).json({ message: "URL not found!" });
 });
 
 // Catch all unexpected errors
 app.use((err: Error, req: any, res: Response, next: any) => {
+  if (env.DEV) console.error(err);
   res.status(ResponseStatus.ERROR).send({ message: err.message });
 });
 
