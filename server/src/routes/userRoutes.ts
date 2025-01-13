@@ -4,13 +4,12 @@ import {
   updateUser,
   updateUserProfile,
 } from "@/controllers/userController";
-import {
-  autheticateRequest,
-  hashBodyPassword,
-  validateUniqueEmail,
-} from "@/middlewares/authMiddleware";
-import { profileUploader } from "@/middlewares/fileMiddleware.ts";
-import { validateBody } from "@/middlewares/shareMiddleware";
+import autheticate from "@/middlewares/autheticate";
+import { hashBodyPassword } from "@/middlewares/hashBodyPassword";
+import uniqueEmailOnly from "@/middlewares/uniqueEmailOnly";
+import { profileUploader } from "@/middlewares/uploaders";
+import { validateBody } from "@/middlewares/validator";
+
 import userValidator from "@/validators/userValidator";
 import express from "express";
 
@@ -25,24 +24,19 @@ userRouter.get("/:id", getUser);
 // update self (email, name, password)
 userRouter.patch(
   "/",
-  autheticateRequest(true),
+  autheticate,
   validateBody(
     userValidator
       .pick({ email: true, name: true, password: true, profile: true })
       .partial()
   ),
-  validateUniqueEmail,
+  uniqueEmailOnly,
   hashBodyPassword,
   updateUser
 );
 
 // upload profile
-userRouter.put(
-  "/profile",
-  autheticateRequest(true),
-  profileUploader,
-  updateUserProfile
-);
+userRouter.put("/profile", autheticate, profileUploader, updateUserProfile);
 
 // delete user
 

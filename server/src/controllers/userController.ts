@@ -1,6 +1,6 @@
 import { ResponseStatus } from "@/constants";
 import database from "@/database";
-import { deleteImage } from "@/middlewares/fileMiddleware.ts";
+import { deleteImage } from "@/middlewares/uploaders";
 import { Handler } from "express";
 
 // get list of users
