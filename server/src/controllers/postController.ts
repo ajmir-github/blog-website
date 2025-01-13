@@ -1,9 +1,7 @@
 import { ResponseStatus } from "@/constants";
 import database from "@/database";
 import { deleteImage } from "@/middlewares/fileMiddleware.ts";
-import postValidator from "@/validators/postValidator";
 import { Handler } from "express";
-import { z } from "zod";
 
 // get posts
 export const listPosts: Handler = async (requset, response) => {
@@ -29,27 +27,24 @@ export const getSinglePost: Handler = async (requset, response) => {
 };
 
 // create post
-export const createPost: Handler = async (request, response) => {
-  const inputs = postValidator.omit({ images: true }).parse(request.body);
+export const createPost: Handler = async ({ body, auth }, response) => {
   const post = await database.post.create({
     data: {
-      ...inputs,
-      userId: request.auth.id,
+      ...body,
+      userId: auth.id,
     },
   });
   response.status(ResponseStatus.CREATED).json({ id: post.id });
 };
 
 // update post
-export const updatePost: Handler = async (requset, response) => {
-  const inputs = postValidator
-    .omit({ images: true })
-    .partial()
-    .parse(requset.body);
+export const updatePost: Handler = async ({ params, body }, response) => {
   const post = await database.post.update({
-    where: { id: requset.params.postId },
+    where: { id: params.postId },
 
-    data: inputs,
+    data: {
+      ...body,
+    },
   });
   response.json(post);
 };
@@ -62,12 +57,9 @@ export const deletePost: Handler = async ({ params }, response) => {
 
 // upload images
 export const uploadPostImages: Handler = async (requset, response) => {
-  const inputs = z
-    .object({ deleteImage: z.string().optional() })
-    .parse(requset.body);
-  if (inputs.deleteImage) await deleteImage(inputs.deleteImage);
+  if (requset.body.deleteImage) await deleteImage(requset.body.deleteImage);
   const images = requset.post.images.filter(
-    (image) => inputs.deleteImage !== image
+    (image) => requset.body.deleteImage !== image
   );
   if (requset.files) {
     const files = requset.files as Express.Multer.File[];

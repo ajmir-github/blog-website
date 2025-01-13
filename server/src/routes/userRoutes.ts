@@ -4,7 +4,11 @@ import {
   updateUser,
   updateUserProfile,
 } from "@/controllers/userController";
-import authenticate from "@/middlewares/isAuthenticated";
+import {
+  autheticateRequest,
+  hashBodyPassword,
+  validateUniqueEmail,
+} from "@/middlewares/authMiddleware";
 import { profileUploader } from "@/middlewares/fileMiddleware.ts";
 import { validateBody } from "@/middlewares/shareMiddleware";
 import userValidator from "@/validators/userValidator";
@@ -19,10 +23,26 @@ userRouter.get("/", listUsers);
 userRouter.get("/:id", getUser);
 
 // update self (email, name, password)
-userRouter.patch("/", authenticate, updateUser);
+userRouter.patch(
+  "/",
+  autheticateRequest(true),
+  validateBody(
+    userValidator
+      .pick({ email: true, name: true, password: true, profile: true })
+      .partial()
+  ),
+  validateUniqueEmail,
+  hashBodyPassword,
+  updateUser
+);
 
 // upload profile
-userRouter.put("/profile", authenticate, profileUploader, updateUserProfile);
+userRouter.put(
+  "/profile",
+  autheticateRequest(true),
+  profileUploader,
+  updateUserProfile
+);
 
 // delete user
 

@@ -6,13 +6,14 @@ import {
   updatePost,
   uploadPostImages,
 } from "@/controllers/postController";
+import { autheticateRequest } from "@/middlewares/authMiddleware";
 import { imagesUploader } from "@/middlewares/fileMiddleware.ts";
-import isAuthenticated from "@/middlewares/isAuthenticated";
 import {
   cachePostByID,
   checkPostAuthorization,
 } from "@/middlewares/postMiddleware";
-
+import { validateBody } from "@/middlewares/shareMiddleware";
+import postValidator from "@/validators/postValidator";
 import express from "express";
 import { z } from "zod";
 
@@ -25,21 +26,27 @@ postRouter.get("/", listPosts);
 postRouter.get("/:postId", getSinglePost);
 
 // create post
-postRouter.post("/", isAuthenticated, createPost);
+postRouter.post(
+  "/",
+  autheticateRequest(true),
+  validateBody(postValidator.omit({ images: true })),
+  createPost
+);
 
 // update post
 postRouter.patch(
   "/:postId",
-  isAuthenticated,
+  autheticateRequest(true),
   cachePostByID,
   checkPostAuthorization,
+  validateBody(postValidator.omit({ images: true }).partial()),
   updatePost
 );
 
 // delete post
 postRouter.delete(
   "/:postId",
-  isAuthenticated,
+  autheticateRequest(true),
   cachePostByID,
   checkPostAuthorization,
   deletePost
@@ -48,9 +55,10 @@ postRouter.delete(
 // upload images
 postRouter.put(
   "/:postId/images",
-  isAuthenticated,
+  autheticateRequest(true),
   cachePostByID,
   checkPostAuthorization,
+  validateBody(z.object({ deleteImage: z.string().optional() })),
   imagesUploader,
   uploadPostImages
 );

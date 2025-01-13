@@ -1,30 +1,28 @@
 import { ResponseStatus } from "@/constants";
 import database from "@/database";
-import { hashPassword, matchPassword, signToken } from "@/utils/encryption";
-import userValidator from "@/validators/userValidator";
+import { matchPassword, signToken } from "@/utils/encryption";
+import { customValidationError } from "@/utils/simplifyZodError";
 import { Handler } from "express";
 
 // sign in
-export const signIn: Handler = async (request, response) => {
-  const inputs = userValidator
-    .pick({ email: true, password: true })
-    .parse(request.body);
+export const signIn: Handler = async (
+  { body: { email, password } },
+  response
+) => {
   // check email
-  const user = await database.user.findUnique({
-    where: { email: inputs.email },
-  });
+  const user = await database.user.findUnique({ where: { email } });
   if (!user) {
     response
       .status(ResponseStatus.BAD_INPUT)
-      .json({ message: "Email not found!" });
+      .json(customValidationError("email", "Email not found!"));
     return;
   }
   // check password
-  const passwordMatched = matchPassword(inputs.password, user.password);
+  const passwordMatched = matchPassword(password, user.password);
   if (!passwordMatched) {
     response
       .status(ResponseStatus.BAD_INPUT)
-      .json({ message: "Password not matched!" });
+      .json(customValidationError("Password", "Password not matched!"));
 
     return;
   }
@@ -34,21 +32,10 @@ export const signIn: Handler = async (request, response) => {
 };
 
 // sign up
-export const signUp: Handler = async (request, response) => {
-  const inputs = userValidator.parse(request.body);
-  const emailAlreadyUsed = await database.user.findFirst({
-    where: { email: inputs.email },
-  });
-  if (emailAlreadyUsed) {
-    response.status(400).json({ message: "This email is already used!" });
-    return;
-  }
-
-  const password = hashPassword(inputs.password);
+export const signUp: Handler = async ({ body }, response) => {
   await database.user.create({
     data: {
-      ...inputs,
-      password,
+      ...body,
       isAdmin: false,
     },
   });

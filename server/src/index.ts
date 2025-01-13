@@ -21,12 +21,6 @@ declare global {
 
 // API Registeration
 app.use("/static", express.static(path.join(__dirname, "/public")));
-// Log requests in DEV mode
-app.use((req, res, next) => {
-  if (env.DEV) console.log({ method: req.method, url: req.url });
-  next();
-});
-
 app.use("/api", router);
 
 // If URL not found
@@ -36,7 +30,7 @@ router.use("*", (request, response) => {
 
 // Catch all unexpected errors
 app.use((err: Error, req: any, res: Response, next: any) => {
-  if (env.DEV) console.error(err);
+  if (env.ENV_MODE === "development") console.error(err);
   res.status(ResponseStatus.ERROR).send({ message: err.message });
 });
 
